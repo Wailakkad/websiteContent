@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../components/AuthProvider';
@@ -13,8 +13,13 @@ export default function SignUp() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   if (user) {
-    navigate('/dashboard');
     return null;
   }
 

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, LayoutDashboard, Send, Inbox, Shield, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, LayoutDashboard, Send, Inbox, Shield, Zap, MessageSquarePlus } from 'lucide-react';
+import { useAuth } from '../components/AuthProvider';
 
 export default function Home() {
+    const { user } = useAuth();
+
     return (
         <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
             {/* Navigation */}
@@ -15,15 +18,26 @@ export default function Home() {
                             <span className="text-xl font-bold tracking-tight text-slate-900">Content Portal</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                                Sign in
-                            </Link>
-                            <Link
-                                to="/signup"
-                                className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition-all"
-                            >
-                                Get Started
-                            </Link>
+                            {user ? (
+                                <Link
+                                    to="/dashboard"
+                                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-all"
+                                >
+                                    Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                                        Sign in
+                                    </Link>
+                                    <Link
+                                        to="/signup"
+                                        className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition-all"
+                                    >
+                                        Get Started
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -45,18 +59,29 @@ export default function Home() {
                                 Collect logos, copy, contact info, and website details in one clean, professional client portal. Say goodbye to endless email threads and missing files.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <Link
-                                    to="/signup"
-                                    className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
-                                >
-                                    Start Free <ArrowRight className="ml-2 h-5 w-5" />
-                                </Link>
-                                <Link
-                                    to="/login"
-                                    className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all"
-                                >
-                                    Try the Portal
-                                </Link>
+                                {user ? (
+                                    <Link
+                                        to="/dashboard"
+                                        className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
+                                    >
+                                        Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link
+                                            to="/signup"
+                                            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
+                                        >
+                                            Start Free <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Link>
+                                        <Link
+                                            to="/login"
+                                            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all"
+                                        >
+                                            Try the Portal
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                             <p className="mt-6 text-sm text-slate-500">No credit card required. Setup takes 2 minutes.</p>
                         </div>
@@ -209,12 +234,21 @@ export default function Home() {
                             Join professional agencies who have stopped fighting with email threads and started using Content Portal.
                         </p>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
-                            <Link
-                                to="/signup"
-                                className="rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
-                            >
-                                Get Started
-                            </Link>
+                            {user ? (
+                                <Link
+                                    to="/dashboard"
+                                    className="rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
+                                >
+                                    Open Dashboard
+                                </Link>
+                            ) : (
+                                <Link
+                                    to="/signup"
+                                    className="rounded-xl bg-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
+                                >
+                                    Get Started
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -229,9 +263,15 @@ export default function Home() {
                         </div>
                         <span className="text-lg font-bold tracking-tight text-slate-900">Content Portal</span>
                     </div>
-                    <p className="text-sm text-slate-500">
-                        &copy; {new Date().getFullYear()} Content Portal Inc. All rights reserved.
-                    </p>
+                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                        <Link to="/feedback" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                            <MessageSquarePlus className="h-4 w-4" />
+                            Leave Feedback
+                        </Link>
+                        <p className="text-sm text-slate-500">
+                            &copy; {new Date().getFullYear()} Content Portal Inc. All rights reserved.
+                        </p>
+                    </div>
                 </div>
             </footer>
         </div>

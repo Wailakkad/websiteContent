@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, MessageSquarePlus } from 'lucide-react';
 import { useAuth } from '../../components/AuthProvider';
 import { cn } from '../../lib/utils';
 
@@ -10,6 +10,7 @@ export default function DashboardLayout() {
   const navigation = [
     { name: 'Projects', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Clients', href: '/dashboard/clients', icon: Users },
+    { name: 'Feedback', href: '/feedback', icon: MessageSquarePlus },
   ];
 
   return (

@@ -10,6 +10,7 @@ import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import PortalView from './pages/portal/PortalView';
 import Home from './pages/Home';
+import Feedback from './pages/Feedback';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/feedback" element={<Feedback />} />
 
           <Route path="/portal/:token" element={<PortalView />} />
 
