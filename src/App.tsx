@@ -9,6 +9,7 @@ import NewClient from './pages/dashboard/NewClient';
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
 import PortalView from './pages/portal/PortalView';
+import Home from './pages/Home';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -22,10 +23,10 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          
+
           <Route path="/portal/:token" element={<PortalView />} />
 
           <Route

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database.types';
-import { Copy, ExternalLink, CheckCircle2, Circle } from 'lucide-react';
+import { Link2, ExternalLink, CheckCircle2, Circle, Eye } from 'lucide-react';
 
 type Project = Database['public']['Tables']['projects']['Row'] & {
   clients: { name: string } | null;
@@ -37,9 +37,9 @@ export default function ProjectDetail() {
       .select('*')
       .eq('project_id', id)
       .single();
-    
+
     if (contentData) setContent(contentData);
-    
+
     setLoading(false);
   }
 
@@ -51,8 +51,12 @@ export default function ProjectDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading project details...</div>;
-  if (!project) return <div className="p-8 text-center text-gray-500">Project not found</div>;
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+  if (!project) return <div className="p-8 text-center text-slate-500">Project not found</div>;
 
   const fields = [
     { key: 'business_name', label: 'Business Name' },
@@ -70,35 +74,40 @@ export default function ProjectDetail() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="bg-white px-6 py-8 shadow sm:rounded-lg">
-        <div className="md:flex md:items-center md:justify-between">
+      <div className="bg-white px-8 py-8 shadow-sm ring-1 ring-slate-200 sm:rounded-2xl">
+        <div className="md:flex md:items-start md:justify-between">
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-              {project.title}
-            </h2>
-            <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-              <div className="mt-2 flex items-center text-sm text-gray-500">
-                Client: {project.clients?.name}
-              </div>
-              <div className="mt-2 flex items-center text-sm text-gray-500">
-                Status: {project.status.replace('_', ' ')}
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:truncate">
+                {project.title}
+              </h2>
+              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${project.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                  project.status === 'in_progress' ? 'bg-indigo-50 text-indigo-700 ring-indigo-600/20' :
+                    'bg-slate-50 text-slate-600 ring-slate-500/10'
+                }`}>
+                {project.status.replace('_', ' ')}
+              </span>
+            </div>
+            <div className="mt-2 flex flex-col sm:mt-2 sm:flex-row sm:flex-wrap sm:space-x-6">
+              <div className="flex items-center text-sm font-medium text-slate-500">
+                Client: <span className="text-slate-900 ml-1">{project.clients?.name}</span>
               </div>
             </div>
           </div>
-          <div className="mt-4 flex md:ml-4 md:mt-0 gap-3">
+          <div className="mt-6 flex flex-col sm:flex-row md:ml-4 md:mt-0 gap-3">
             <button
               onClick={copyPortalLink}
-              className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all"
             >
-              <Copy className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-              {copied ? 'Copied!' : 'Copy Portal Link'}
+              <Link2 className="-ml-0.5 mr-2 h-4 w-4 text-slate-400" aria-hidden="true" />
+              {copied ? 'Copied to clipboard!' : 'Copy Portal Link'}
             </button>
             <Link
               to={`/portal/${project.portal_token}`}
               target="_blank"
-              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
             >
-              <ExternalLink className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+              <Eye className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
               View Portal
             </Link>
           </div>
@@ -106,43 +115,50 @@ export default function ProjectDetail() {
       </div>
 
       {/* Content Section */}
-      <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-base font-semibold leading-6 text-gray-900">Submitted Content</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Information submitted by the client via the portal.
+      <div className="bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+          <h3 className="text-base font-semibold leading-6 text-slate-900">Submitted Content</h3>
+          <p className="mt-1 max-w-2xl text-sm text-slate-500">
+            Information provided by the client via their secure portal wrapper.
           </p>
         </div>
-        <div className="px-4 py-5 sm:p-6 space-y-6">
+
+        <div className="p-0">
           {!content ? (
-            <div className="text-center py-8 text-gray-500">
-              No content has been submitted yet.
+            <div className="text-center py-12 px-4 sm:px-6">
+              <Circle className="mx-auto h-12 w-12 text-slate-300" />
+              <h3 className="mt-2 text-sm font-semibold text-slate-900">Waiting for client</h3>
+              <p className="mt-1 text-sm text-slate-500">No content has been submitted yet. Once they fill out the form, it will appear here.</p>
             </div>
           ) : (
-            fields.map(field => {
-              const value = content[field.key];
-              const hasResponse = value && value.trim() !== '';
-              
-              return (
-                <div key={field.key} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                        {hasResponse ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <Circle className="w-4 h-4 text-gray-300" />
-                        )}
-                        {field.label}
-                      </h4>
-                    </div>
+            <div className="divide-y divide-slate-100">
+              {fields.map(field => {
+                const value = content[field.key];
+                const hasResponse = value && value.trim() !== '';
+
+                return (
+                  <div key={field.key} className="px-6 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-8">
+                    <dt className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                      {hasResponse ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-slate-300 shrink-0" />
+                      )}
+                      {field.label}
+                    </dt>
+                    <dd className="mt-2 text-sm text-slate-700 sm:col-span-2 sm:mt-0">
+                      {hasResponse ? (
+                        <div className="bg-slate-50 rounded-lg p-4 border border-slate-100 whitespace-pre-wrap font-mono text-sm">
+                          {value}
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic">No response provided</span>
+                      )}
+                    </dd>
                   </div>
-                  <div className="mt-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-md whitespace-pre-wrap">
-                    {hasResponse ? value : <span className="text-gray-400 italic">No response yet</span>}
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

@@ -13,51 +13,71 @@ export default function DashboardLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
-        <div className="w-full flex-none md:w-64 bg-white border-r border-gray-200">
-          <div className="flex h-full flex-col px-3 py-4 md:px-2">
-            <Link
-              className="mb-2 flex h-20 items-end justify-start rounded-md bg-indigo-600 p-4 md:h-40"
-              to="/dashboard"
-            >
-              <div className="w-32 text-white md:w-40">
-                <span className="text-xl font-bold">Content Portal</span>
-              </div>
-            </Link>
-            <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
+        {/* Sidebar */}
+        <div className="w-full flex-none md:w-64 bg-white border-r border-slate-200">
+          <div className="flex h-full flex-col">
+            {/* Logo area */}
+            <div className="h-16 flex items-center px-6 border-b border-slate-100">
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
+                  <LayoutDashboard className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg font-bold tracking-tight text-slate-900">Content Portal</span>
+              </Link>
+            </div>
+
+            {/* User info area */}
+            <div className="px-6 py-4 flex flex-col items-start bg-slate-50/50 border-b border-slate-100">
+              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Signed in as</span>
+              <span className="text-sm font-medium text-slate-900 truncate w-full" title={user?.email || ''}>
+                {user?.user_metadata?.full_name || user?.email}
+              </span>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-4 py-4 space-y-1">
               {navigation.map((item) => {
                 const LinkIcon = item.icon;
+                const isActive = location.pathname === item.href || (item.href === '/dashboard' && location.pathname.startsWith('/dashboard/projects'));
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      'flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-indigo-100 hover:text-indigo-600 md:flex-none md:justify-start md:p-2 md:px-3',
-                      location.pathname === item.href || (item.href === '/dashboard' && location.pathname.startsWith('/dashboard/projects'))
-                        ? 'bg-indigo-100 text-indigo-600'
-                        : ''
+                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     )}
                   >
-                    <LinkIcon className="w-6 h-6" />
-                    <p className="hidden md:block">{item.name}</p>
+                    <LinkIcon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-slate-400")} />
+                    {item.name}
                   </Link>
                 );
               })}
-              <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
+            </nav>
+
+            {/* Sign out */}
+            <div className="p-4 border-t border-slate-100">
               <button
                 onClick={() => signOut()}
-                className="flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-indigo-100 hover:text-indigo-600 md:flex-none md:justify-start md:p-2 md:px-3"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200"
               >
-                <LogOut className="w-6 h-6" />
-                <div className="hidden md:block">Sign Out</div>
+                <LogOut className="h-5 w-5 text-slate-400" />
+                <span>Sign out</span>
               </button>
             </div>
           </div>
         </div>
-        <div className="flex-grow p-6 md:overflow-y-auto md:p-12">
-          <Outlet />
-        </div>
+
+        {/* Main Content Area */}
+        <main className="flex-grow p-6 md:overflow-y-auto md:p-8 lg:p-12">
+          <div className="mx-auto max-w-5xl">
+            <Outlet />
+          </div>
+        </main>
       </div>
     </div>
   );

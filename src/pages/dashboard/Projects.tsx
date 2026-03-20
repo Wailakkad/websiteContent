@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database.types';
 import { format } from 'date-fns';
 import { useAuth } from '../../components/AuthProvider';
+import { Plus, LayoutDashboard } from 'lucide-react';
 
 type Project = Database['public']['Tables']['projects']['Row'] & {
   clients: { name: string } | null;
@@ -40,73 +41,81 @@ export default function Projects() {
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading projects...</div>;
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    </div>
+  );
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold leading-6 text-gray-900">Projects</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage content collection projects for your clients.
+      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Projects</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Manage content collection portals for your clients.
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
           <Link
             to="/dashboard/projects/new"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all"
           >
-            Create Project
+            <Plus className="h-4 w-4" />
+            New Project
           </Link>
         </div>
       </div>
-      
+
       {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md text-sm">
+        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm antialiased font-medium ring-1 ring-inset ring-red-600/20">
           {error}
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6">
         {projects.length === 0 ? (
-          <div className="col-span-full py-12 text-center bg-white rounded-lg border border-dashed border-gray-300">
-            <h3 className="mt-2 text-sm font-semibold text-gray-900">No projects</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
+          <div className="text-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 px-6 sm:px-12">
+            <LayoutDashboard className="mx-auto h-12 w-12 text-slate-300" />
+            <h3 className="mt-4 text-sm font-semibold text-slate-900">No projects started</h3>
+            <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">Get started by creating a new content portal project for a client. You'll be able to send them a secure link.</p>
             <div className="mt-6">
               <Link
                 to="/dashboard/projects/new"
-                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
               >
-                Create Project
+                <Plus className="h-4 w-4" />
+                Create New Project
               </Link>
             </div>
           </div>
         ) : (
-          projects.map((project) => (
-            <Link
-              key={project.id}
-              to={`/dashboard/projects/${project.id}`}
-              className="flex flex-col justify-between rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5 hover:ring-indigo-600 transition-all"
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold leading-6 text-gray-900">{project.title}</h3>
-                  <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                    project.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                    project.status === 'in_progress' ? 'bg-blue-50 text-blue-700 ring-blue-600/20' :
-                    'bg-gray-50 text-gray-600 ring-gray-500/10'
-                  }`}>
-                    {project.status.replace('_', ' ')}
-                  </span>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Link
+                key={project.id}
+                to={`/dashboard/projects/${project.id}`}
+                className="group flex flex-col justify-between rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 hover:ring-indigo-600 hover:shadow-md transition-all duration-200"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <h3 className="text-base font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">{project.title}</h3>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset shrink-0 ${project.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                        project.status === 'in_progress' ? 'bg-indigo-50 text-indigo-700 ring-indigo-600/20' :
+                          'bg-slate-50 text-slate-600 ring-slate-500/10'
+                      }`}>
+                      {project.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 line-clamp-2 h-10">{project.description || 'No description provided.'}</p>
                 </div>
-                <p className="mt-2 text-sm text-gray-500 line-clamp-2">{project.description || 'No description'}</p>
-              </div>
-              <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                <span>{project.clients?.name || 'Unknown Client'}</span>
-                <span>{format(new Date(project.created_at), 'MMM d, yyyy')}</span>
-              </div>
-            </Link>
-          ))
+                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                  <span className="truncate max-w-[120px]" title={project.clients?.name}>{project.clients?.name || 'Unknown Client'}</span>
+                  <span>{format(new Date(project.created_at), 'MMM d, yyyy')}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </div>

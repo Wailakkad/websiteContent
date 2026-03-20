@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Save } from 'lucide-react';
+import { Database } from '../../types/database.types';
+import { Layers } from 'lucide-react';
+
+type Project = Database['public']['Tables']['projects']['Row'] & {
+  clients: { name: string, company_name: string | null } | null;
+  users: { raw_user_meta_data: { full_name?: string } } | null;
+};
 
 export default function PortalView() {
   const { token } = useParams<{ token: string }>();
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  // Form fields state
   const [formData, setFormData] = useState({
     business_name: '',
     business_description: '',
@@ -18,232 +30,306 @@ export default function PortalView() {
     facebook: '',
     linkedin: ''
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
-    if (token) fetchPortalData();
+    if (token) {
+      fetchProject();
+    }
   }, [token]);
 
-  async function fetchPortalData() {
-    if (!token) {
+  async function fetchProject() {
+    try {
+      // Find project by token
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          clients(name, company_name)
+        `)
+        .eq('portal_token', token)
+        .single();
+
+      if (projectError || !projectData) {
+        throw new Error('Project not found or link is invalid.');
+      }
+
+      setProject(projectData as unknown as Project);
+
+      // Check if content already exists
+      const { data: contentData } = await supabase
+        .from('project_contents')
+        .select('*')
+        .eq('project_id', projectData.id)
+        .single();
+
+      if (contentData) {
+        setSubmitted(true);
+      }
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to load project portal');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Fetch project and content securely via RPC
-    const { data, error } = await supabase
-      .rpc('get_portal_data', { p_token: token });
-
-    if (error || !data) {
-      console.error('Error fetching portal data:', error);
-      setLoading(false);
-      return;
-    }
-
-    const { project, content } = data as any;
-    setProject(project);
-
-    if (content) {
-      setFormData({
-        business_name: content.business_name || '',
-        business_description: content.business_description || '',
-        about_text: content.about_text || '',
-        services: content.services || '',
-        phone: content.phone || '',
-        email: content.email || '',
-        address: content.address || '',
-        instagram: content.instagram || '',
-        facebook: content.facebook || '',
-        linkedin: content.linkedin || ''
-      });
-    }
-    
-    setLoading(false);
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!project || !token) return;
-    setSaving(true);
-    setSaveMessage('');
+    if (!project) return;
+
+    setSubmitting(true);
+    setError('');
 
     try {
-      // Save content securely via RPC
-      const { error } = await supabase
-        .rpc('save_portal_content', {
-          p_token: token,
-          p_business_name: formData.business_name,
-          p_business_description: formData.business_description,
-          p_about_text: formData.about_text,
-          p_services: formData.services,
-          p_phone: formData.phone,
-          p_email: formData.email,
-          p_address: formData.address,
-          p_instagram: formData.instagram,
-          p_facebook: formData.facebook,
-          p_linkedin: formData.linkedin
-        });
-      
-      if (error) throw error;
+      // Save content
+      const { error: insertError } = await supabase.from('project_contents').insert([{
+        project_id: project.id,
+        ...formData
+      }]);
 
-      setSaveMessage('Progress saved successfully!');
-      setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
-      console.error('Error saving responses:', error);
-      setSaveMessage('Failed to save. Please try again.');
-    } finally {
-      setSaving(false);
+      if (insertError) throw insertError;
+
+      // Update project status
+      const { error: updateError } = await supabase.from('projects')
+        .update({ status: 'completed' })
+        .eq('id', project.id);
+
+      if (updateError) throw updateError;
+
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      setError('Failed to submit content. Please try again.');
+      setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your portal...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto text-center">
+          <Layers className="mx-auto h-12 w-12 text-slate-300" />
+          <h2 className="mt-4 text-lg font-semibold text-slate-900">Portal Not Available</h2>
+          <p className="mt-2 text-slate-600">{error || 'This portal link is invalid or has expired.'}</p>
         </div>
       </div>
     );
   }
 
-  if (!project) {
+  if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center bg-white p-8 rounded-lg shadow-sm max-w-md w-full">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Portal Not Found</h2>
-          <p className="text-gray-600">The link you followed may be invalid or expired.</p>
+      <div className="min-h-screen bg-slate-50 px-4 py-16 sm:px-6 lg:px-8 flex items-center">
+        <div className="max-w-md mx-auto text-center bg-white p-10 rounded-3xl shadow-sm ring-1 ring-slate-200">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Thank you!</h2>
+          <p className="mt-3 text-slate-500">
+            Your content has been successfully submitted. We will review it shortly and get back to you with the next steps.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="bg-white px-6 py-8 shadow sm:rounded-lg text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
-            {project.title}
+    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 shadow-sm mb-6">
+            <Layers className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Content Collection Portal
           </h1>
-          {project.description && (
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto">{project.description}</p>
-          )}
+          <p className="mt-4 text-lg leading-8 text-slate-500">
+            Please fill out the form below with the information for your project: <span className="font-medium text-slate-900">{project.title}</span>.
+          </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSave} className="space-y-8">
-          <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Business Details</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">Basic information about your business.</p>
-            </div>
-            <div className="px-4 py-5 sm:p-6 space-y-6">
-              <div>
-                <label htmlFor="business_name" className="block text-sm font-medium leading-6 text-gray-900">Business Name</label>
-                <div className="mt-2">
-                  <input type="text" name="business_name" id="business_name" value={formData.business_name} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                </div>
+        <form onSubmit={handleSubmit} className="bg-white shadow-sm ring-1 ring-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100">
+          {/* General Information */}
+          <div className="px-6 py-8 sm:p-10">
+            <h3 className="text-lg font-semibold leading-7 text-slate-900">Business Information</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-500">The core details about your company.</p>
+
+            <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+              <div className="sm:col-span-full">
+                <label htmlFor="business_name" className="block text-sm font-medium leading-6 text-slate-900 mb-2">
+                  Official Business Name <span className="text-slate-400 font-normal">(Required)</span>
+                </label>
+                <input
+                  type="text"
+                  name="business_name"
+                  id="business_name"
+                  required
+                  value={formData.business_name}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
               </div>
-              <div>
-                <label htmlFor="business_description" className="block text-sm font-medium leading-6 text-gray-900">Business Description</label>
-                <div className="mt-2">
-                  <textarea name="business_description" id="business_description" rows={3} value={formData.business_description} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="about_text" className="block text-sm font-medium leading-6 text-gray-900">About Us Text</label>
-                <div className="mt-2">
-                  <textarea name="about_text" id="about_text" rows={4} value={formData.about_text} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="services" className="block text-sm font-medium leading-6 text-gray-900">Services</label>
-                <div className="mt-2">
-                  <textarea name="services" id="services" rows={4} value={formData.services} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                </div>
+
+              <div className="col-span-full">
+                <label htmlFor="business_description" className="block text-sm font-medium leading-6 text-slate-900 mb-2">
+                  Short Business Description / Tagline
+                </label>
+                <input
+                  type="text"
+                  name="business_description"
+                  id="business_description"
+                  placeholder="e.g. We provide fast, reliable plumbing services."
+                  value={formData.business_description}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
               </div>
             </div>
           </div>
 
-          <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Contact & Socials</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">How customers can reach you.</p>
-            </div>
-            <div className="px-4 py-5 sm:p-6 space-y-6">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900">Phone</label>
-                  <div className="mt-2">
-                    <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">Email</label>
-                  <div className="mt-2">
-                    <input type="email" name="email" id="email" value={formData.email} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="address" className="block text-sm font-medium leading-6 text-gray-900">Address</label>
-                  <div className="mt-2">
-                    <textarea name="address" id="address" rows={2} value={formData.address} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="instagram" className="block text-sm font-medium leading-6 text-gray-900">Instagram URL</label>
-                  <div className="mt-2">
-                    <input type="url" name="instagram" id="instagram" value={formData.instagram} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="facebook" className="block text-sm font-medium leading-6 text-gray-900">Facebook URL</label>
-                  <div className="mt-2">
-                    <input type="url" name="facebook" id="facebook" value={formData.facebook} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="linkedin" className="block text-sm font-medium leading-6 text-gray-900">LinkedIn URL</label>
-                  <div className="mt-2">
-                    <input type="url" name="linkedin" id="linkedin" value={formData.linkedin} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3" />
-                  </div>
-                </div>
+          {/* Long Form Content */}
+          <div className="px-6 py-8 sm:p-10 bg-slate-50/50">
+            <h3 className="text-lg font-semibold leading-7 text-slate-900">Detailed Content</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-500">Text that will appear on main pages of your website.</p>
+
+            <div className="mt-8 space-y-8">
+              <div>
+                <label htmlFor="about_text" className="block text-sm font-medium leading-6 text-slate-900 mb-2">
+                  About Us / Company History
+                </label>
+                <textarea
+                  id="about_text"
+                  name="about_text"
+                  rows={4}
+                  placeholder="Tell us the story behind your business..."
+                  value={formData.about_text}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="services" className="block text-sm font-medium leading-6 text-slate-900 mb-2">
+                  List of Services / Products
+                </label>
+                <textarea
+                  id="services"
+                  name="services"
+                  rows={4}
+                  placeholder="What exactly do you offer? (You can list them out)"
+                  value={formData.services}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
               </div>
             </div>
           </div>
 
-          {/* Floating Save Bar */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-10">
-            <div className="max-w-3xl mx-auto flex items-center justify-between">
-              <div className="text-sm font-medium">
-                {saveMessage && (
-                  <span className={saveMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}>
-                    {saveMessage}
-                  </span>
-                )}
+          {/* Contact Details */}
+          <div className="px-6 py-8 sm:p-10">
+            <h3 className="text-lg font-semibold leading-7 text-slate-900">Contact & Socials</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-500">Where clients can reach you online and offline.</p>
+
+            <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium leading-6 text-slate-900 mb-2">Public Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
               </div>
-              <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex items-center rounded-md bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
-              >
-                <Save className="-ml-0.5 mr-2 h-5 w-5" aria-hidden="true" />
-                {saving ? 'Saving...' : 'Save Progress'}
-              </button>
+
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium leading-6 text-slate-900 mb-2">Public Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="address" className="block text-sm font-medium leading-6 text-slate-900 mb-2">Physical Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  id="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="instagram" className="block text-sm font-medium leading-6 text-slate-900 mb-2">Instagram Username / Link</label>
+                <input
+                  type="text"
+                  name="instagram"
+                  id="instagram"
+                  value={formData.instagram}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="facebook" className="block text-sm font-medium leading-6 text-slate-900 mb-2">Facebook Link</label>
+                <input
+                  type="text"
+                  name="facebook"
+                  id="facebook"
+                  value={formData.facebook}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="linkedin" className="block text-sm font-medium leading-6 text-slate-900 mb-2">LinkedIn Link</label>
+                <input
+                  type="text"
+                  name="linkedin"
+                  id="linkedin"
+                  value={formData.linkedin}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-xl border-0 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-4"
+                />
+              </div>
             </div>
           </div>
-          
-          {/* Spacer for floating bar */}
-          <div className="h-24"></div>
+
+          <div className="px-6 py-6 sm:px-10 bg-slate-50 flex items-center justify-between">
+            <p className="text-xs text-slate-500">You can only submit this content once.</p>
+            <button
+              type="submit"
+              disabled={submitting || !formData.business_name}
+              className="rounded-xl bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 transition-all font-medium"
+            >
+              {submitting ? 'Submitting...' : 'Submit Content'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
