@@ -51,22 +51,34 @@ export default function Feedback() {
         setError('');
 
         try {
-            const webhookUrl = import.meta.env.VITE_N8N_FEEDBACK_WEBHOOK_URL;
-            if (!webhookUrl) throw new Error("Webhook URL is not configured.");
+            const message = `
+📩 *New Feedback Submission*
 
-            const payload = {
-                submittedAt: new Date().toISOString(),
-                source: 'Content Portal MVP',
-                ...formData
-            };
+👤 *Role:* ${formData.userType}
+📧 *Email:* ${formData.email || 'Not provided'}
+📞 *Can contact:* ${formData.canContact ? 'Yes' : 'No'}
+🚀 *Used product:* ${formData.usedProduct ? 'Yes' : 'No'}
+📍 *Areas used:* ${formData.usedAreas.join(', ') || 'None'}
+⭐ *Rating:* ${formData.rating || 'Not rated'}
 
-            const res = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
+❤️ *What they liked:*
+${formData.likedMost || 'N/A'}
 
-            if (!res.ok) throw new Error('Failed to submit feedback.');
+😟 *Frustrations/Missing:*
+${formData.frustrations || 'N/A'}
+
+💡 *Next feature:*
+${formData.nextFeature || 'N/A'}
+
+🕒 *Submitted At:* ${new Date().toLocaleString()}
+`.trim();
+
+            const whatsappUrl = `https://wa.me/212717837586?text=${encodeURIComponent(message)}`;
+            
+            // Redirect to WhatsApp
+            window.location.href = whatsappUrl;
+            
+            // Set success state
             setSuccess(true);
         } catch (err: any) {
             setError(err.message || 'An unexpected error occurred.');
