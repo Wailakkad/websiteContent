@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, LayoutDashboard, Send, Inbox, Shield, Zap, MessageSquarePlus } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Send, Inbox, Shield, Zap, MessageSquarePlus } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
+import logo from '../images/newlogo.png';
 
 export default function Home() {
     const { user } = useAuth();
@@ -11,11 +12,8 @@ export default function Home() {
             <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                                <LayoutDashboard className="h-5 w-5 text-white" />
-                            </div>
-                            <span className="text-xl font-bold tracking-tight text-slate-900">Content Portal</span>
+                        <div className="flex items-center h-full py-2">
+                            <img src={logo} alt="Content Portal logo" className="h-9 max-h-full w-auto" />
                         </div>
                         <div className="flex items-center gap-4">
                             {user ? (
@@ -257,11 +255,8 @@ export default function Home() {
             {/* Footer */}
             <footer className="bg-white border-t border-slate-200 py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-900">
-                            <LayoutDashboard className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="text-lg font-bold tracking-tight text-slate-900">Content Portal</span>
+                    <div className="flex items-center">
+                        <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
                     </div>
                     <div className="flex flex-col md:flex-row gap-6 items-center">
                         <Link to="/feedback" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1">

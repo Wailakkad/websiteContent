@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, MessageSquarePlus, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { MessageSquarePlus, CheckCircle2, ChevronLeft } from 'lucide-react';
+import logo from '../images/newlogo.png';
 import { useAuth } from '../components/AuthProvider';
 
 const USER_TYPES = ['Freelancer', 'Agency owner', 'Developer', 'Designer', 'Client', 'Other'];
@@ -120,11 +121,8 @@ ${formData.nextFeature || 'N/A'}
                         <ChevronLeft className="h-4 w-4 mr-1" />
                         Back
                     </Link>
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded bg-indigo-600">
-                            <LayoutDashboard className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="text-sm font-bold tracking-tight text-slate-900">Content Portal</span>
+                    <div className="flex items-center h-full py-2">
+                        <img src={logo} alt="Content Portal logo" className="h-9 max-h-full w-auto" />
                     </div>
                 </div>
             </header>

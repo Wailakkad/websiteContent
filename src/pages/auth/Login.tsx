@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../components/AuthProvider';
-import { LayoutDashboard } from 'lucide-react';
+import logo from '../../images/newlogo.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -44,8 +44,8 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8 selection:bg-indigo-100 selection:text-indigo-900">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center">
-          <Link to="/" className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 mb-6 drop-shadow-md">
-            <LayoutDashboard className="h-7 w-7 text-white" />
+          <Link to="/" className="mb-6 drop-shadow-md">
+            <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
           </Link>
           <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900">
             Welcome back
