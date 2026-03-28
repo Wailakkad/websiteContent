@@ -95,14 +95,16 @@ drop policy if exists "Public can insert project contents" on project_contents;
 drop policy if exists "Public can update project contents" on project_contents;
 
 -- Secure RPC Functions (Acts like a Serverless Route Handler)
--- 1. Fetch project and content by token
+-- 1. Fetch project, client, and content by token
+-- SECURITY DEFINER allows it to bypass RLS as the owner
 create or replace function get_portal_data(p_token text)
 returns json
 language plpgsql
-security definer -- Bypasses RLS to act as a secure server-side function
+security definer
 as $$
 declare
   v_project record;
+  v_client record;
   v_content record;
 begin
   -- Find project by token
@@ -112,17 +114,24 @@ begin
     return null;
   end if;
 
-  -- Find content by project id
+  -- Find client details
+  select name, company_name into v_client from clients where id = v_project.client_id;
+
+  -- Find project content
   select * into v_content from project_contents where project_id = v_project.id;
 
   return json_build_object(
-    'project', row_to_json(v_project),
-    'content', row_to_json(v_content)
+    'id', v_project.id,
+    'title', v_project.title,
+    'description', v_project.description,
+    'status', v_project.status,
+    'client', v_client,
+    'content', v_content
   );
 end;
 $$;
 
--- 2. Save project content securely
+-- 2. Save project content securely and update status
 create or replace function save_portal_content(
   p_token text,
   p_business_name text,
@@ -147,7 +156,7 @@ begin
   select id into v_project_id from projects where portal_token = p_token;
   
   if not found then
-    raise exception 'Project not found';
+    raise exception 'Project not found or link is invalid.';
   end if;
 
   -- Upsert content
@@ -170,8 +179,17 @@ begin
     facebook = excluded.facebook,
     linkedin = excluded.linkedin,
     updated_at = now();
+
+  -- CRITICAL: Update project status to 'completed' so agency knows content is ready
+  update public.projects 
+  set status = 'completed' 
+  where id = v_project_id;
 end;
 $$;
+
+-- Grant permissions to anonymous and authenticated users
+grant execute on function get_portal_data(text) to anon, authenticated;
+grant execute on function save_portal_content(text, text, text, text, text, text, text, text, text, text, text) to anon, authenticated;
 
 -- Trigger to create profile on signup
 create or replace function public.handle_new_user()

@@ -4,9 +4,13 @@ import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database.types';
 import { Layers } from 'lucide-react';
 
-type Project = Database['public']['Tables']['projects']['Row'] & {
-  clients: { name: string, company_name: string | null } | null;
-  users: { raw_user_meta_data: { full_name?: string } } | null;
+type Project = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  client: { name: string, company_name: string | null } | null;
+  content: any | null;
 };
 
 export default function PortalView() {
@@ -39,30 +43,21 @@ export default function PortalView() {
 
   async function fetchProject() {
     try {
-      // Find project by token
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          clients(name, company_name)
-        `)
-        .eq('portal_token', token)
-        .single();
+      // Find project by token via RPC (Security Definer avoids RLS issues for anon)
+      const { data, error: rpcError } = await supabase.rpc('get_portal_data', { p_token: token });
 
-      if (projectError || !projectData) {
+      if (rpcError || !data) {
         throw new Error('Project not found or link is invalid.');
       }
 
-      setProject(projectData as unknown as Project);
+      const portalData = data as Project;
+      setProject(portalData);
 
-      // Check if content already exists
-      const { data: contentData } = await supabase
-        .from('project_contents')
-        .select('*')
-        .eq('project_id', projectData.id)
-        .single();
-
-      if (contentData) {
+      // Fix: Check project status instead of content existence to determine submission state.
+      // This ensures new projects (status: 'draft') always show the form, even if
+      // an empty content row exists. The portal only shows the "Thank you" screen
+      // once the status is explicitly set to 'completed' via the submit RPC.
+      if (portalData.status === 'completed') {
         setSubmitted(true);
       }
 
@@ -80,26 +75,28 @@ export default function PortalView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!project) return;
+    if (!token) return;
 
     setSubmitting(true);
     setError('');
 
     try {
-      // Save content
-      const { error: insertError } = await supabase.from('project_contents').insert([{
-        project_id: project.id,
-        ...formData
-      }]);
+      // Save content and update project status via secure RPC
+      const { error: submitError } = await supabase.rpc('save_portal_content', {
+        p_token: token,
+        p_business_name: formData.business_name,
+        p_business_description: formData.business_description,
+        p_about_text: formData.about_text,
+        p_services: formData.services,
+        p_phone: formData.phone,
+        p_email: formData.email,
+        p_address: formData.address,
+        p_instagram: formData.instagram,
+        p_facebook: formData.facebook,
+        p_linkedin: formData.linkedin
+      });
 
-      if (insertError) throw insertError;
-
-      // Update project status
-      const { error: updateError } = await supabase.from('projects')
-        .update({ status: 'completed' })
-        .eq('id', project.id);
-
-      if (updateError) throw updateError;
+      if (submitError) throw submitError;
 
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
