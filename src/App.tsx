@@ -14,6 +14,8 @@ const SignUp = lazy(() => import('./pages/auth/SignUp'));
 const PortalView = lazy(() => import('./pages/portal/PortalView'));
 const Home = lazy(() => import('./pages/Home'));
 const Feedback = lazy(() => import('./pages/Feedback'));
+const BlogListing = lazy(() => import('./pages/blog/BlogListing'));
+const BlogPost = lazy(() => import('./pages/blog/BlogPost'));
 
 // Professional loading fallback
 const PageLoader = () => (
@@ -42,6 +44,8 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/blog" element={<BlogListing />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
 
             <Route path="/portal/:token" element={<PortalView />} />
 

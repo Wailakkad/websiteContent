@@ -23,6 +23,9 @@ export default function Home() {
                             <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 max-h-full w-auto" />
                         </div>
                         <div className="flex items-center gap-4">
+                            <Link to="/blog" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors mr-2">
+                                Blog
+                            </Link>
                             {user ? (
                                 <Link
                                     to="/dashboard"
