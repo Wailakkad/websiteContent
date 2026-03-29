@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Send, Inbox, Shield, Zap, MessageSquarePlus } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
+import SEO from '../components/SEO';
 import logo from '../images/newlogo.png';
 
 export default function Home() {
@@ -8,12 +9,18 @@ export default function Home() {
 
     return (
         <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+            <SEO 
+                title="Streamline Client Onboarding" 
+                description="Stop chasing clients for website content. Collect logos, copy, contact info, and website details in one clean, professional client portal."
+                canonical="/"
+            />
             {/* Navigation */}
             <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
                         <div className="flex items-center h-full py-2">
-                            <img src={logo} alt="Content Portal logo" className="h-9 max-h-full w-auto" />
+                            {/* Explicit width and height added to prevent layout shifts (CLS) */}
+                            <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 max-h-full w-auto" />
                         </div>
                         <div className="flex items-center gap-4">
                             {user ? (
@@ -256,7 +263,8 @@ export default function Home() {
             <footer className="bg-white border-t border-slate-200 py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center">
-                        <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
+                        {/* Added loading=lazy and explicit dimensions for off-screen image */}
+                        <img src={logo} alt="Content Portal logo" width="131" height="36" loading="lazy" className="h-9 w-auto" />
                     </div>
                     <div className="flex flex-col md:flex-row gap-6 items-center">
                         <Link to="/feedback" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1">

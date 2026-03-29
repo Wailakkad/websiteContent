@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../components/AuthProvider';
+import SEO from '../../components/SEO';
 import logo from '../../images/newlogo.png';
 
 export default function Login() {
@@ -42,14 +43,19 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8 selection:bg-indigo-100 selection:text-indigo-900">
+      <SEO 
+        title="Log In" 
+        description="Access your Content Portal dashboard to manage client assets and content requests seamlessly." 
+        canonical="/login" 
+      />
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center">
           <Link to="/" className="mb-6 drop-shadow-md">
-            <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
+            <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 w-auto" />
           </Link>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900">
             Welcome back
-          </h2>
+          </h1>
           <p className="mt-2 text-center text-sm text-slate-600">
             Sign in to manage your clients and projects.
           </p>

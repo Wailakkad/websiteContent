@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /feedback
+Disallow: /dashboard/
+Disallow: /api/
+
+Sitemap: https://www.yourdomain.com/sitemap.xml

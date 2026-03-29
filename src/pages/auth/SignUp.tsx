@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../components/AuthProvider';
+import SEO from '../../components/SEO';
 import logo from '../../images/newlogo.png';
 import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -52,17 +53,22 @@ export default function SignUp() {
   if (submitted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+        <SEO 
+          title="Check Your Email" 
+          description="We've sent a confirmation link. Please verify your address to activate your account." 
+          canonical="/signup" 
+        />
         <div className="w-full max-w-md space-y-8 text-center">
           <div className="flex flex-col items-center">
             <Link to="/" className="mb-6 drop-shadow-md">
-              <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
+              <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 w-auto" />
             </Link>
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6 shadow-sm ring-8 ring-green-50">
               <Mail className="h-10 w-10 text-green-600" />
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
               Check your email
-            </h2>
+            </h1>
             <p className="mt-4 text-base text-slate-600 leading-relaxed">
               We've sent a confirmation link to <span className="font-semibold text-slate-900">{email}</span>.
               Please verify your address to activate your account.
@@ -98,14 +104,19 @@ export default function SignUp() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8 selection:bg-indigo-100 selection:text-indigo-900">
+      <SEO 
+        title="Sign Up" 
+        description="Create a unified Content Portal to stop chasing clients. Start collecting assets and website content elegantly today." 
+        canonical="/signup" 
+      />
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center">
           <Link to="/" className="mb-6 drop-shadow-md">
-            <img src={logo} alt="Content Portal logo" className="h-9 w-auto" />
+            <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 w-auto" />
           </Link>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900">
             Create your account
-          </h2>
+          </h1>
           <p className="mt-2 text-center text-sm text-slate-600">
             Start organizing your client content today.
           </p>

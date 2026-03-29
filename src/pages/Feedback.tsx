@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MessageSquarePlus, CheckCircle2, ChevronLeft } from 'lucide-react';
 import logo from '../images/newlogo.png';
 import { useAuth } from '../components/AuthProvider';
+import SEO from '../components/SEO';
 
 const USER_TYPES = ['Freelancer', 'Agency owner', 'Developer', 'Designer', 'Client', 'Other'];
 const USED_AREAS_OPTIONS = ['Dashboard', 'Create Client', 'Create Project', 'Client Portal', 'Content Submission'];
@@ -91,6 +92,10 @@ ${formData.nextFeature || 'N/A'}
     if (success) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-indigo-100 selection:text-indigo-900">
+                <SEO 
+                    title="Feedback Sent" 
+                    description="Thank you for sharing your feedback on Content Portal." 
+                />
                 <div className="w-full max-w-lg bg-white p-10 rounded-3xl shadow-xl ring-1 ring-slate-200/50 text-center">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
                         <CheckCircle2 className="h-8 w-8 text-green-600" />
@@ -114,6 +119,11 @@ ${formData.nextFeature || 'N/A'}
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 pb-20">
+            <SEO 
+                title="Send Feedback" 
+                description="Share your thoughts on Content Portal to help us improve the client onboarding experience." 
+                canonical="/feedback" 
+            />
             {/* Header */}
             <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
                 <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
@@ -122,7 +132,7 @@ ${formData.nextFeature || 'N/A'}
                         Back
                     </Link>
                     <div className="flex items-center h-full py-2">
-                        <img src={logo} alt="Content Portal logo" className="h-9 max-h-full w-auto" />
+                        <img src={logo} alt="Content Portal logo" width="131" height="36" className="h-9 max-h-full w-auto" />
                     </div>
                 </div>
             </header>

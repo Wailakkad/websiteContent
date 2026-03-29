@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database.types';
-import { Layers } from 'lucide-react';
+import SEO from '../../components/SEO';
+import logo from '../../images/newlogo.png';
 
 type Project = {
   id: string;
@@ -118,9 +119,13 @@ export default function PortalView() {
   if (error || !project) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-16 sm:px-6 lg:px-8">
+        <SEO 
+          title="Portal Not Found" 
+          description="This client portal link is invalid or has expired." 
+        />
         <div className="max-w-md mx-auto text-center">
-          <Layers className="mx-auto h-12 w-12 text-slate-300" />
-          <h2 className="mt-4 text-lg font-semibold text-slate-900">Portal Not Available</h2>
+          <img src={logo} alt="Content Portal logo" className="mx-auto h-12 w-auto opacity-50" />
+          <h1 className="mt-4 text-lg font-semibold text-slate-900">Portal Not Available</h1>
           <p className="mt-2 text-slate-600">{error || 'This portal link is invalid or has expired.'}</p>
         </div>
       </div>
@@ -130,13 +135,17 @@ export default function PortalView() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-16 sm:px-6 lg:px-8 flex items-center">
+        <SEO 
+          title="Submission Successful" 
+          description="Your content has been successfully submitted via Content Portal." 
+        />
         <div className="max-w-md mx-auto text-center bg-white p-10 rounded-3xl shadow-sm ring-1 ring-slate-200">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
-          <h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Thank you!</h2>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Thank you!</h1>
           <p className="mt-3 text-slate-500">
             Your content has been successfully submitted. We will review it shortly and get back to you with the next steps.
           </p>
@@ -147,10 +156,15 @@ export default function PortalView() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <SEO 
+        title={`${project?.title || 'Client'} Content Portal`} 
+        description="Securely submit your business information, logos, and content for your upcoming web project." 
+        canonical={`/portal/${token}`} 
+      />
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 shadow-sm mb-6">
-            <Layers className="h-6 w-6 text-white" />
+          <div className="flex justify-center mb-6">
+            <img src={logo} alt="Content Portal logo" className="h-12 w-auto" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Content Collection Portal
@@ -163,7 +177,7 @@ export default function PortalView() {
         <form onSubmit={handleSubmit} className="bg-white shadow-sm ring-1 ring-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100">
           {/* General Information */}
           <div className="px-6 py-8 sm:p-10">
-            <h3 className="text-lg font-semibold leading-7 text-slate-900">Business Information</h3>
+            <h2 className="text-lg font-semibold leading-7 text-slate-900">Business Information</h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">The core details about your company.</p>
 
             <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
@@ -201,7 +215,7 @@ export default function PortalView() {
 
           {/* Long Form Content */}
           <div className="px-6 py-8 sm:p-10 bg-slate-50/50">
-            <h3 className="text-lg font-semibold leading-7 text-slate-900">Detailed Content</h3>
+            <h2 className="text-lg font-semibold leading-7 text-slate-900">Detailed Content</h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">Text that will appear on main pages of your website.</p>
 
             <div className="mt-8 space-y-8">
@@ -239,7 +253,7 @@ export default function PortalView() {
 
           {/* Contact Details */}
           <div className="px-6 py-8 sm:p-10">
-            <h3 className="text-lg font-semibold leading-7 text-slate-900">Contact & Socials</h3>
+            <h2 className="text-lg font-semibold leading-7 text-slate-900">Contact & Socials</h2>
             <p className="mt-1 text-sm leading-6 text-slate-500">Where clients can reach you online and offline.</p>
 
             <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
