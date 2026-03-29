@@ -1,11 +1,32 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Send, Inbox, Shield, Zap, MessageSquarePlus } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../components/AuthProvider';
 import SEO from '../components/SEO';
 import logo from '../images/newlogo.png';
 
 export default function Home() {
     const { user } = useAuth();
+
+    const heroVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.1,
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.8, ease: "easeOut" } 
+        }
+    };
 
     return (
         <div className="bg-white min-h-screen text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
@@ -53,20 +74,36 @@ export default function Home() {
 
             <main>
                 {/* Hero Section */}
-                <section className="relative overflow-hidden pt-24 pb-32 lg:pt-36 lg:pb-40">
-                    <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-                        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-indigo-200 to-indigo-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style={{ clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)' }}></div>
+                <section className="relative overflow-hidden pt-12 pb-48 lg:pt-16 lg:pb-72">
+                    {/* Background layers */}
+                    <div className="absolute inset-0">
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="h-full w-full object-cover"
+                        >
+                            <source src="https://res.cloudinary.com/dhkyla1rv/video/upload/v1774809586/Reels/Design_sans_titre_38.mp4" type="video/mp4" />
+                        </video>
+                        {/* Seamless gradient transition fading the video into the next section's bg-slate-50 */}
+                        <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pointer-events-none"></div>
                     </div>
 
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-                        <div className="mx-auto max-w-3xl">
-                            <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl mb-6 leading-tight">
+                    <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+                        <motion.div 
+                            className="mx-auto max-w-3xl"
+                            variants={heroVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <motion.h1 variants={itemVariants} className="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl mb-6 leading-tight">
                                 Stop chasing clients for <span className="text-indigo-600">website content.</span>
-                            </h1>
-                            <p className="mt-6 text-xl leading-8 text-slate-600 mb-10">
+                            </motion.h1>
+                            <motion.p variants={itemVariants} className="mt-6 text-xl leading-8 text-slate-600 mb-10">
                                 Collect logos, copy, contact info, and website details in one clean, professional client portal. Say goodbye to endless email threads and missing files.
-                            </p>
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            </motion.p>
+                            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 {user ? (
                                     <Link
                                         to="/dashboard"
@@ -90,9 +127,11 @@ export default function Home() {
                                         </Link>
                                     </>
                                 )}
-                            </div>
-                            <p className="mt-6 text-sm text-slate-500">No credit card required. Setup takes 2 minutes.</p>
-                        </div>
+                            </motion.div>
+                            <motion.p variants={itemVariants} className="mt-6 text-sm text-slate-500">
+                                No credit card required. Setup takes 2 minutes.
+                            </motion.p>
+                        </motion.div>
                     </div>
                 </section>
 
